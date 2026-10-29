@@ -12,7 +12,7 @@
 - [x] 08 — SQL pay insights and outliers
 - [x] 09 — React foundation and employee screens
 - [x] 10 — Salary and insights screens
-- [ ] 11 — Integrated tests, performance and CI
+- [x] 11 — Integrated tests, performance and CI (CI/CD pipeline omitted per user instruction)
 - [ ] 12 — Deployment and assessment handoff
 
 ## Blockers
