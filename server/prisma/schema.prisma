@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// Generator for Prisma Client
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Currency table - holds exchange rates and decimal place info
+model Currency {
+  code          String   @id @db.VarChar(3)
+  decimalPlaces  Int
+  usdRate       Decimal  @db.Decimal(18, 8)
+  
+  employees     Employee[]
+  salaryHistory SalaryHistory[]
+}
+
+// Employee table - main employee data with current salary
+model Employee {
+  id             String    @id @default(uuid()) @db.Uuid
+  employeeCode   String    @unique @db.VarChar(30)
+  name           String    @db.VarChar(150)
+  email          String    @unique @db.VarChar(254)
+  
+  countryCode    String    @db.VarChar(2)
+  department     String    @db.VarChar(100)
+  level          String    @db.VarChar(50)
+  
+  salaryMinorUnits  BigInt
+  currencyCode      String    @db.VarChar(3)
+  
+  createdAt      DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime  @updatedAt @db.Timestamptz(3)
+  
+  currency      Currency   @relation(fields: [currencyCode], references: [code], onDelete: Restrict)
+  salaryHistory SalaryHistory[]
+}
+
+// SalaryHistory table - historical salary records (append-only)
+model SalaryHistory {
+  id             String    @id @default(uuid()) @db.Uuid
+  employeeId     String    @db.Uuid
+  salaryMinorUnits BigInt
+  currencyCode   String    @db.VarChar(3)
+  changedAt      DateTime  @default(now()) @db.Timestamptz(3)
+  
+  employee       Employee  @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  currency       Currency   @relation(fields: [currencyCode], references: [code], onDelete: Restrict)
+}
+
+// Constraints
+// CHECK salaryMinorUnits BETWEEN 1 AND 9007199254740991 on BOTH salary tables
+// CHECK usdRate > 0 and decimalPlaces BETWEEN 0 AND 3
