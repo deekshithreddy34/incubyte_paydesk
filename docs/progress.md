@@ -3,8 +3,8 @@
 ## Plan status
 
 - [x] 01 — Requirements and fixed decisions
-- [ ] 02 — Setup, dependencies and scripts
-- [ ] 03 — Database and migrations
+- [x] 02 — Setup, dependencies and scripts
+- [x] 03 — Database and migrations
 - [ ] 04 — Deterministic seed data
 - [ ] 05 — API foundation and money contracts
 - [ ] 06 — Employee APIs
