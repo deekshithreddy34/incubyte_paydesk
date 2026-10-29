@@ -4,6 +4,7 @@ import cors from 'cors';
 import optionsRoutes from './modules/options/options.routes.js';
 import employeeRoutes from './modules/employees/employee.routes.js';
 import salaryRoutes from './modules/salaries/salary.routes.js';
+import insightRoutes from './modules/insights/insight.routes.js';
 import { errorHandler } from './middleware/error-handler.js';
 
 const app = express();
@@ -41,6 +42,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api', optionsRoutes);
 app.use('/api', employeeRoutes);
 app.use('/api', salaryRoutes);
+app.use('/api', insightRoutes);
 
 // Catch-all 404 handler for API routes
 app.use('/api', (req, res) => {

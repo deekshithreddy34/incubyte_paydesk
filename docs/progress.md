@@ -9,7 +9,7 @@
 - [x] 05 — API foundation and money contracts
 - [x] 06 — Employee APIs
 - [x] 07 — Salary and history APIs
-- [ ] 08 — SQL pay insights and outliers
+- [x] 08 — SQL pay insights and outliers
 - [ ] 09 — React foundation and employee screens
 - [ ] 10 — Salary and insights screens
 - [ ] 11 — Integrated tests, performance and CI
