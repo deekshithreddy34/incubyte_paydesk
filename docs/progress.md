@@ -8,10 +8,7 @@
 - [x] 04 — Deterministic seed data
 - [x] 05 — API foundation and money contracts
 - [x] 06 — Employee APIs
-- [ ] 07 — Salary and history APIs
-- [ ] 05 — API foundation and money contracts
-- [ ] 06 — Employee APIs
-- [ ] 07 — Salary and history APIs
+- [x] 07 — Salary and history APIs
 - [ ] 08 — SQL pay insights and outliers
 - [ ] 09 — React foundation and employee screens
 - [ ] 10 — Salary and insights screens
@@ -26,4 +23,3 @@ None currently.
 
 - Plan 13 (future roadmap) is explicitly excluded from implementation.
 - Plan 14 (test traceability) is a reference document to consult throughout.
-

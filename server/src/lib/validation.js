@@ -72,3 +72,14 @@ export function validateQuery(schema) {
   };
 }
 
+export function validateParams(schema) {
+  return (req, res, next) => {
+    const result = schema.safeParse(req.params);
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      return next(new BadRequestError('Invalid path parameters', fieldErrors));
+    }
+    req.params = result.data;
+    next();
+  };
+}
