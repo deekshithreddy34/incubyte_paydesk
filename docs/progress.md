@@ -6,7 +6,8 @@
 - [x] 02 — Setup, dependencies and scripts
 - [x] 03 — Database and migrations
 - [x] 04 — Deterministic seed data
-- [ ] 05 — API foundation and money contracts
+- [x] 05 — API foundation and money contracts
+- [ ] 06 — Employee APIs
 - [ ] 05 — API foundation and money contracts
 - [ ] 06 — Employee APIs
 - [ ] 07 — Salary and history APIs
