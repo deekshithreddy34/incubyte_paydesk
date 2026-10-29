@@ -4,10 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run --fileParallelism=false",
     "dev": "node index.js",
     "db:push": "prisma db push",
-    "db:seed": "node db/seed.js"
+    "db:seed": "node prisma/seed.js",
+    "db:seed:reset": "node prisma/seed.js --reset"
   },
   "keywords": [],
   "author": "",

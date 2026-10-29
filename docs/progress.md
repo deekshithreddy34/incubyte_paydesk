@@ -5,7 +5,8 @@
 - [x] 01 — Requirements and fixed decisions
 - [x] 02 — Setup, dependencies and scripts
 - [x] 03 — Database and migrations
-- [ ] 04 — Deterministic seed data
+- [x] 04 — Deterministic seed data
+- [ ] 05 — API foundation and money contracts
 - [ ] 05 — API foundation and money contracts
 - [ ] 06 — Employee APIs
 - [ ] 07 — Salary and history APIs
