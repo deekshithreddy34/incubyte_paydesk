@@ -37,7 +37,14 @@ export function validateBody(schema) {
   return (req, res, next) => {
     const result = schema.strict().safeParse(req.body);
     if (!result.success) {
-      const fieldErrors = result.error.flatten().fieldErrors;
+      const fieldErrors = { ...result.error.flatten().fieldErrors };
+      for (const issue of result.error.issues) {
+        if (issue.code === 'unrecognized_keys' && Array.isArray(issue.keys)) {
+          for (const key of issue.keys) {
+            fieldErrors[key] = [`Unrecognized field '${key}'`];
+          }
+        }
+      }
       return next(new BadRequestError('Validation failed', fieldErrors));
     }
     req.body = result.data;
@@ -50,10 +57,17 @@ export function validateQuery(schema) {
   return (req, res, next) => {
     const result = schema.strict().safeParse(req.query);
     if (!result.success) {
-      const fieldErrors = result.error.flatten().fieldErrors;
+      const fieldErrors = { ...result.error.flatten().fieldErrors };
+      for (const issue of result.error.issues) {
+        if (issue.code === 'unrecognized_keys' && Array.isArray(issue.keys)) {
+          for (const key of issue.keys) {
+            fieldErrors[key] = [`Unrecognized parameter '${key}'`];
+          }
+        }
+      }
       return next(new BadRequestError('Invalid query parameters', fieldErrors));
     }
-    req.query = result.data;
+    req.validatedQuery = result.data;
     next();
   };
 }

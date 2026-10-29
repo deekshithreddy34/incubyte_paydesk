@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { bigIntToNumber, serializeRecord } from '../../src/lib/serialize.js';
+import { resetTestDatabase } from '../helpers/db.js';
 
 const testPrisma = new PrismaClient({
   datasources: {
@@ -13,25 +14,10 @@ const testPrisma = new PrismaClient({
 describe('Database Schema & Constraints Integration Tests', () => {
   beforeAll(async () => {
     await testPrisma.$connect();
-    // Clean test db
-    await testPrisma.salaryHistory.deleteMany();
-    await testPrisma.employee.deleteMany();
-    await testPrisma.currency.deleteMany();
-
-    // Insert baseline currencies
-    await testPrisma.currency.create({
-      data: {
-        code: 'USD',
-        decimalPlaces: 2,
-        usdRate: 1.0,
-      },
-    });
+    await resetTestDatabase(testPrisma);
   });
 
   afterAll(async () => {
-    await testPrisma.salaryHistory.deleteMany();
-    await testPrisma.employee.deleteMany();
-    await testPrisma.currency.deleteMany();
     await testPrisma.$disconnect();
   });
 

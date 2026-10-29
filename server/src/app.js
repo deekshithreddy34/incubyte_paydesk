@@ -2,6 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import optionsRoutes from './modules/options/options.routes.js';
+import employeeRoutes from './modules/employees/employee.routes.js';
 import { errorHandler } from './middleware/error-handler.js';
 
 const app = express();
@@ -37,6 +38,7 @@ app.get('/api/health', (req, res) => {
 
 // Feature routes
 app.use('/api', optionsRoutes);
+app.use('/api', employeeRoutes);
 
 // Catch-all 404 handler for API routes
 app.use('/api', (req, res) => {

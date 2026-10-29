@@ -17,6 +17,9 @@ export function errorHandler(err, req, res, next) {
     return res.status(err.statusCode).json(response);
   }
 
+  // Always log unexpected internal errors
+  console.error('Unhandled internal error:', err);
+
   // Handle JSON syntax parse error from express.json()
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
     return res.status(400).json({

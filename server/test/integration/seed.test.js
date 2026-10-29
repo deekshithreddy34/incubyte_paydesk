@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { generateSeedData } from '../../prisma/seed-data.js';
+import { resetTestDatabase } from '../helpers/db.js';
 
 const testPrisma = new PrismaClient({
   datasources: {
@@ -13,15 +14,10 @@ const testPrisma = new PrismaClient({
 describe('Database Seed Integration Tests', () => {
   beforeAll(async () => {
     await testPrisma.$connect();
-    await testPrisma.salaryHistory.deleteMany();
-    await testPrisma.employee.deleteMany();
-    await testPrisma.currency.deleteMany();
+    await resetTestDatabase(testPrisma);
   });
 
   afterAll(async () => {
-    await testPrisma.salaryHistory.deleteMany();
-    await testPrisma.employee.deleteMany();
-    await testPrisma.currency.deleteMany();
     await testPrisma.$disconnect();
   });
 
@@ -37,6 +33,10 @@ describe('Database Seed Integration Tests', () => {
         create: { code: c.code, decimalPlaces: c.decimalPlaces, usdRate: c.usdRate },
       });
     }
+
+    // Clean test database before run
+    await testPrisma.salaryHistory.deleteMany();
+    await testPrisma.employee.deleteMany();
 
     // Insert employees and histories
     await testPrisma.employee.createMany({ data: employees });
