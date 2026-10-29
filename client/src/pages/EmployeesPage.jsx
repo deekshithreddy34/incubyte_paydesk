@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useEmployees, useFilterOptions } from '../hooks/useEmployees.js';
 import { createEmployee } from '../api/employees.js';
+import { updateEmployeeSalary } from '../api/salaries.js';
 import EmployeeFilters from '../components/EmployeeFilters.jsx';
 import EmployeeTable from '../components/EmployeeTable.jsx';
 import Pagination from '../components/Pagination.jsx';
 import AddEmployeeDialog from '../components/AddEmployeeDialog.jsx';
+import ChangeSalaryDialog from '../components/ChangeSalaryDialog.jsx';
+import SalaryHistoryDrawer from '../components/SalaryHistoryDrawer.jsx';
 import { UserPlus, AlertTriangle } from 'lucide-react';
 
 export default function EmployeesPage() {
@@ -19,6 +22,11 @@ export default function EmployeesPage() {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Salary dialog & history drawer state
+  const [selectedEmployeeForSalary, setSelectedEmployeeForSalary] = useState(null);
+  const [selectedEmployeeForHistory, setSelectedEmployeeForHistory] = useState(null);
+  const [isSalaryUpdating, setIsSalaryUpdating] = useState(false);
 
   const { data: optionsData, isLoading: isLoadingOptions } = useFilterOptions();
   const { data: employeeData, isLoading: isLoadingEmployees, error, refetch } = useEmployees(filters);
@@ -49,6 +57,16 @@ export default function EmployeesPage() {
       refetch(); // Refresh list cleanly
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleUpdateSalary(employeeId, payload) {
+    setIsSalaryUpdating(true);
+    try {
+      await updateEmployeeSalary(employeeId, payload);
+      refetch(); // Invalidate & refresh employee list
+    } finally {
+      setIsSalaryUpdating(false);
     }
   }
 
@@ -107,8 +125,8 @@ export default function EmployeesPage() {
         employees={employeeData?.data || []}
         currencyMap={currencyMap}
         isLoading={isLoadingEmployees}
-        onChangeSalary={(emp) => alert(`Salary update for ${emp.employeeCode} (wired in Plan 10)`)}
-        onViewHistory={(emp) => alert(`Salary history for ${emp.employeeCode} (wired in Plan 10)`)}
+        onChangeSalary={(emp) => setSelectedEmployeeForSalary(emp)}
+        onViewHistory={(emp) => setSelectedEmployeeForHistory(emp)}
       />
 
       {/* Pagination Footer */}
@@ -129,7 +147,24 @@ export default function EmployeesPage() {
         isLoading={isSubmitting}
         onSubmit={handleAddEmployee}
       />
+
+      {/* Change Salary Dialog */}
+      <ChangeSalaryDialog
+        isOpen={Boolean(selectedEmployeeForSalary)}
+        onClose={() => setSelectedEmployeeForSalary(null)}
+        employee={selectedEmployeeForSalary}
+        currencies={currencies}
+        isLoading={isSalaryUpdating}
+        onSubmit={handleUpdateSalary}
+      />
+
+      {/* Salary History Drawer */}
+      <SalaryHistoryDrawer
+        isOpen={Boolean(selectedEmployeeForHistory)}
+        onClose={() => setSelectedEmployeeForHistory(null)}
+        employee={selectedEmployeeForHistory}
+        currencies={currencies}
+      />
     </div>
   );
 }
-

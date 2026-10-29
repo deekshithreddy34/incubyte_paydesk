@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import EmployeesPage from './pages/EmployeesPage.jsx';
+import PayInsightsPage from './pages/PayInsightsPage.jsx';
 import { Users, BarChart3, Info } from 'lucide-react';
 
 export default function App() {
@@ -24,7 +25,7 @@ export default function App() {
                 onClick={() => setActiveTab('employees')}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                   activeTab === 'employees'
-                    ? 'bg-blue-50 text-blue-700'
+                    ? 'bg-blue-50 text-blue-700 font-bold'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
@@ -36,7 +37,7 @@ export default function App() {
                 onClick={() => setActiveTab('insights')}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                   activeTab === 'insights'
-                    ? 'bg-blue-50 text-blue-700'
+                    ? 'bg-blue-50 text-blue-700 font-bold'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
@@ -60,15 +61,7 @@ export default function App() {
 
       {/* Main Content Body */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {activeTab === 'employees' ? (
-          <EmployeesPage />
-        ) : (
-          <div className="py-16 text-center text-slate-500 bg-white border border-slate-200 rounded-lg mt-6">
-            <BarChart3 className="w-10 h-10 mx-auto text-slate-400 mb-2" />
-            <p className="text-base font-semibold text-slate-800">Pay Insights & Outliers</p>
-            <p className="text-xs text-slate-500 mt-1">This module will be connected in Plan 10.</p>
-          </div>
-        )}
+        {activeTab === 'employees' ? <EmployeesPage /> : <PayInsightsPage />}
       </main>
     </div>
   );

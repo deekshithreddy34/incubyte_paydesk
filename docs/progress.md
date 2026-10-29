@@ -10,8 +10,8 @@
 - [x] 06 — Employee APIs
 - [x] 07 — Salary and history APIs
 - [x] 08 — SQL pay insights and outliers
-- [ ] 09 — React foundation and employee screens
-- [ ] 10 — Salary and insights screens
+- [x] 09 — React foundation and employee screens
+- [x] 10 — Salary and insights screens
 - [ ] 11 — Integrated tests, performance and CI
 - [ ] 12 — Deployment and assessment handoff
 
