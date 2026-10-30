@@ -46,5 +46,5 @@ HR can find and add an employee, change salary and inspect history, and inspect 
 
 ## Reference
 
-See the [system architecture diagram](architecture/SALARYMANAGEMENT_INCUBYTE.png) for the visual specification these requirements are derived from.
+See the [system architecture diagram](architecture/SALARYMANAGEMENT_ACME.png) for the visual specification these requirements are derived from.
 

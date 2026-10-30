@@ -1,6 +1,6 @@
 # Implementation Decisions — ACME Salary Management
 
-> Refer to the [system architecture diagram](architecture/SALARYMANAGEMENT_INCUBYTE.png) and its [detailed breakdown](architecture/README.md) for the visual reference these decisions are derived from.
+> Refer to the [system architecture diagram](architecture/SALARYMANAGEMENT_ACME.png) and its [detailed breakdown](architecture/README.md) for the visual reference these decisions are derived from.
 
 ## Data model
 
