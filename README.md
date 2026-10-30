@@ -39,6 +39,10 @@ Salaries are stored as integer minor units to preserve precision. Salary updates
 
 ## Assessment scope
 
-This version focuses on salary records and insights. Payroll processing, taxes, payments, approvals, and live exchange rates are excluded because they introduce separate workflows. Authentication and role management are also outside this version; use synthetic data only.
+This version focuses on salary records and insights. Payroll processing, taxes, payments, approvals, and live exchange rates are excluded because they introduce separate workflows. Authentication and role management are also outside this version; uses synthetic data only.
 
 See [requirements](docs/requirements.md) for the complete scope and exclusions, and [project documentation](docs/) for supporting details.
+
+## Video Demo
+
+- **[software demo video](https://drive.google.com/file/d/1Z0z2ojgfD3tH14XaTqmlEGKLvoPOkaaM/view?usp=sharing)**
