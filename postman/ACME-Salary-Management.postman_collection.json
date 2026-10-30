@@ -1,0 +1,1502 @@
+{
+  "info": {
+    "_postman_id": "d291a39d-975f-45ab-9f0b-7ce7170c7bc6",
+    "name": "ACME Salary Management API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Built from the uploaded Express source. Covers all 8 implemented method/path combinations.\n\nSETUP: Start your backend and seed its currencies. Set collection variable baseUrl to your server origin (default http://localhost:3000, without trailing slash). No authentication middleware is present in the supplied source.\n\nRUN: Run the entire collection in order with one iteration. Create employee generates a unique code/email and saves employeeId. Salary requests use that ID. Running creates one persistent test employee and one salary change; there is no delete endpoint. Re-running the whole collection creates a fresh employee. For individual salary requests, first run Create employee or set employeeId yourself; exact history-count checks assume the ordered fresh-employee workflow.\n\nMONEY: salaryMinorUnits is a positive integer, not a formatted amount. INR/USD/GBP use 100 minor units per major unit; JPY uses 1. 5000000 INR = INR 50,000. Insights are expressed in USD minor units. No salary period is assumed.\n\nFILTERS: country IN/US/GB/JP; department Engineering/Finance/HR/Sales; level Junior/Mid/Senior/Lead. page >= 1; pageSize 1..100. Strict schemas reject unknown body/query keys. Currency codes must also exist in the database.\n\nVerification: generated from source and checked for JSON and script syntax; not executed against a running API/database."
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "employeeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "employeeCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "employeeEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "missingEmployeeId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Health and options",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Service is healthy\", () => pm.expect(json.status).to.eql(\"ok\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filter options",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/filter-options",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "filter-options"
+              ]
+            },
+            "description": "Currencies must be seeded in the database before creating employees."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Filter lists are present\", () => { [\"countries\", \"departments\", \"levels\", \"currencies\"].forEach(key => pm.expect(json.data[key]).to.be.an(\"array\")); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Employees",
+      "item": [
+        {
+          "name": "Create employee - saves employeeId",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
+            },
+            "description": "Creates a new test employee on every run. 5000000 INR minor units = INR 50,000. Initial salary history is created automatically. No delete endpoint exists in the supplied API.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"name\": \"Postman Test Employee\",\n  \"email\": \"{{employeeEmail}}\",\n  \"countryCode\": \"IN\",\n  \"department\": \"Engineering\",\n  \"level\": \"Junior\",\n  \"salaryMinorUnits\": 5000000,\n  \"currencyCode\": \"INR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"employeeId\", \"\");",
+                  "const suffix = pm.variables.replaceIn(\"{{$guid}}\").replace(/-/g, \"\").slice(0, 24);",
+                  "pm.collectionVariables.set(\"employeeCode\", \"PM-\" + suffix.toUpperCase());",
+                  "pm.collectionVariables.set(\"employeeEmail\", \"postman-\" + suffix + \"@example.com\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Employee created with expected salary\", () => {",
+                  " pm.expect(json.data.id).to.be.a(\"string\");",
+                  " pm.expect(json.data.salaryMinorUnits).to.eql(5000000);",
+                  " pm.expect(json.data.currencyCode).to.eql(\"INR\");",
+                  "});",
+                  "if (pm.response.code === 201 && json.data && json.data.id) pm.collectionVariables.set(\"employeeId\", json.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List employees - paginated",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees?page=1&pageSize=25",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "25"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Data is an array\", () => pm.expect(json.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination is present\", () => { pm.expect(json.total).to.be.a(\"number\"); pm.expect(json.page).to.eql(1); pm.expect(json.pageSize).to.eql(25); pm.expect(json.data.length).to.be.at.most(25); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search and filter employees",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees?search={{employeeCode}}&country=IN&department=Engineering&level=Junior&page=1&pageSize=25",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{employeeCode}}"
+                },
+                {
+                  "key": "country",
+                  "value": "IN"
+                },
+                {
+                  "key": "department",
+                  "value": "Engineering"
+                },
+                {
+                  "key": "level",
+                  "value": "Junior"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "25"
+                }
+              ]
+            },
+            "description": "Run Create employee first. All query filters are optional. Search matches name, email or employee code."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Data is an array\", () => pm.expect(json.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination is present\", () => { pm.expect(json.total).to.be.a(\"number\"); pm.expect(json.page).to.eql(1); pm.expect(json.pageSize).to.eql(25); pm.expect(json.data.length).to.be.at.most(25); });",
+                  "pm.test(\"Created employee found\", () => pm.expect(json.data.some(e => e.id === pm.collectionVariables.get(\"employeeId\"))).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Salaries",
+      "item": [
+        {
+          "name": "Initial salary history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}/salary-history?page=1&pageSize=25",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeId}}",
+                "salary-history"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "25"
+                }
+              ]
+            },
+            "description": "Run after Create employee and before Update salary."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Data is an array\", () => pm.expect(json.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination is present\", () => { pm.expect(json.total).to.be.a(\"number\"); pm.expect(json.page).to.eql(1); pm.expect(json.pageSize).to.eql(25); pm.expect(json.data.length).to.be.at.most(25); });",
+                  "pm.test(\"Initial history has one entry\", () => pm.expect(json.total).to.eql(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update salary",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}/salary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeId}}",
+                "salary"
+              ]
+            },
+            "description": "Changes the test employee salary to INR 55,000. Both amount and currency are required.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salaryMinorUnits\": 5500000,\n  \"currencyCode\": \"INR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Salary updated\", () => { pm.expect(json.data.salaryMinorUnits).to.eql(5500000); pm.expect(json.data.currencyCode).to.eql(\"INR\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Repeat unchanged salary - idempotency",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}/salary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeId}}",
+                "salary"
+              ]
+            },
+            "description": "Same amount and currency should not create another history record.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salaryMinorUnits\": 5500000,\n  \"currencyCode\": \"INR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Salary is unchanged\", () => pm.expect(json.data.salaryMinorUnits).to.eql(5500000));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "History after update and repeat",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}/salary-history?page=1&pageSize=25",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeId}}",
+                "salary-history"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "25"
+                }
+              ]
+            },
+            "description": "Run the collection in order. Expect initial salary plus one update, newest first."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Data is an array\", () => pm.expect(json.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination is present\", () => { pm.expect(json.total).to.be.a(\"number\"); pm.expect(json.page).to.eql(1); pm.expect(json.pageSize).to.eql(25); pm.expect(json.data.length).to.be.at.most(25); });",
+                  "pm.test(\"Only one salary change was recorded\", () => {",
+                  " pm.expect(json.total).to.eql(2);",
+                  " pm.expect(json.data[0].salaryMinorUnits).to.eql(5500000);",
+                  " pm.expect(json.data[1].salaryMinorUnits).to.eql(5000000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Pay insights",
+      "item": [
+        {
+          "name": "Salary summary by department",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pay-insights?groupBy=department",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pay-insights"
+              ],
+              "query": [
+                {
+                  "key": "groupBy",
+                  "value": "department"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Data is an array\", () => pm.expect(json.data).to.be.an(\"array\"));",
+                  "pm.test(\"Summary metadata\", () => { pm.expect(json.currencyCode).to.eql(\"USD\"); pm.expect(json.groupBy).to.eql(\"department\"); });",
+                  "pm.test(\"Summary ranges are consistent\", () => json.data.forEach(row => {",
+                  " pm.expect(row.employeeCount).to.be.above(0);",
+                  " pm.expect(row.minSalaryUsdMinorUnits).to.be.at.most(row.averageSalaryUsdMinorUnits);",
+                  " pm.expect(row.averageSalaryUsdMinorUnits).to.be.at.most(row.maxSalaryUsdMinorUnits);",
+                  "}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Salary summary by country",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pay-insights?groupBy=country",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pay-insights"
+              ],
+              "query": [
+                {
+                  "key": "groupBy",
+                  "value": "country"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Data is an array\", () => pm.expect(json.data).to.be.an(\"array\"));",
+                  "pm.test(\"Summary metadata\", () => { pm.expect(json.currencyCode).to.eql(\"USD\"); pm.expect(json.groupBy).to.eql(\"country\"); });",
+                  "pm.test(\"Summary ranges are consistent\", () => json.data.forEach(row => {",
+                  " pm.expect(row.employeeCount).to.be.above(0);",
+                  " pm.expect(row.minSalaryUsdMinorUnits).to.be.at.most(row.averageSalaryUsdMinorUnits);",
+                  " pm.expect(row.averageSalaryUsdMinorUnits).to.be.at.most(row.maxSalaryUsdMinorUnits);",
+                  "}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Salary summary by level",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pay-insights?groupBy=level",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pay-insights"
+              ],
+              "query": [
+                {
+                  "key": "groupBy",
+                  "value": "level"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Data is an array\", () => pm.expect(json.data).to.be.an(\"array\"));",
+                  "pm.test(\"Summary metadata\", () => { pm.expect(json.currencyCode).to.eql(\"USD\"); pm.expect(json.groupBy).to.eql(\"level\"); });",
+                  "pm.test(\"Summary ranges are consistent\", () => json.data.forEach(row => {",
+                  " pm.expect(row.employeeCount).to.be.above(0);",
+                  " pm.expect(row.minSalaryUsdMinorUnits).to.be.at.most(row.averageSalaryUsdMinorUnits);",
+                  " pm.expect(row.averageSalaryUsdMinorUnits).to.be.at.most(row.maxSalaryUsdMinorUnits);",
+                  "}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filtered salary summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pay-insights?groupBy=department&country=IN&department=Engineering&level=Junior",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pay-insights"
+              ],
+              "query": [
+                {
+                  "key": "groupBy",
+                  "value": "department"
+                },
+                {
+                  "key": "country",
+                  "value": "IN"
+                },
+                {
+                  "key": "department",
+                  "value": "Engineering"
+                },
+                {
+                  "key": "level",
+                  "value": "Junior"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Data is an array\", () => pm.expect(json.data).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pay outliers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pay-insights/outliers?groupBy=department&page=1&pageSize=25",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pay-insights",
+                "outliers"
+              ],
+              "query": [
+                {
+                  "key": "groupBy",
+                  "value": "department"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "25"
+                }
+              ]
+            },
+            "description": "Optional filters: country, department, level. Uses 1.5 x IQR within groups of at least 4 employees. An empty result is valid."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Data is an array\", () => pm.expect(json.data).to.be.an(\"array\"));",
+                  "pm.test(\"Pagination is present\", () => { pm.expect(json.total).to.be.a(\"number\"); pm.expect(json.page).to.eql(1); pm.expect(json.pageSize).to.eql(25); pm.expect(json.data.length).to.be.at.most(25); });",
+                  "pm.test(\"Outlier metadata\", () => { pm.expect(json.currencyCode).to.eql(\"USD\"); pm.expect(json.method).to.eql(\"IQR_1_5\"); });",
+                  "pm.test(\"Outlier directions\", () => json.data.forEach(row => pm.expect(row.direction).to.be.oneOf([\"HIGH\", \"LOW\"])));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Error cases",
+      "item": [
+        {
+          "name": "Duplicate employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
+            },
+            "description": "Run Create employee first; reuses the same code and email.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"name\": \"Postman Test Employee\",\n  \"email\": \"{{employeeEmail}}\",\n  \"countryCode\": \"IN\",\n  \"department\": \"Engineering\",\n  \"level\": \"Junior\",\n  \"salaryMinorUnits\": 5000000,\n  \"currencyCode\": \"INR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"CONFLICT\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid salary - zero",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"name\": \"Postman Test Employee\",\n  \"email\": \"{{employeeEmail}}\",\n  \"countryCode\": \"IN\",\n  \"department\": \"Engineering\",\n  \"level\": \"Junior\",\n  \"salaryMinorUnits\": 0,\n  \"currencyCode\": \"INR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"BAD_REQUEST\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid country",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"name\": \"Postman Test Employee\",\n  \"email\": \"{{employeeEmail}}\",\n  \"countryCode\": \"XX\",\n  \"department\": \"Engineering\",\n  \"level\": \"Junior\",\n  \"salaryMinorUnits\": 5000000,\n  \"currencyCode\": \"INR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"BAD_REQUEST\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown body field",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"name\": \"Postman Test Employee\",\n  \"email\": \"{{employeeEmail}}\",\n  \"countryCode\": \"IN\",\n  \"department\": \"Engineering\",\n  \"level\": \"Junior\",\n  \"salaryMinorUnits\": 5000000,\n  \"currencyCode\": \"INR\",\n  \"unexpected\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"BAD_REQUEST\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCode\": \"{{employeeCode}}\",\n  \"name\": \"Postman Test Employee\",\n  \"email\": \"not-an-email\",\n  \"countryCode\": \"IN\",\n  \"department\": \"Engineering\",\n  \"level\": \"Junior\",\n  \"salaryMinorUnits\": 5000000,\n  \"currencyCode\": \"INR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"BAD_REQUEST\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Missing required fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"BAD_REQUEST\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid pagination",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees?page=0&pageSize=101",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "101"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"BAD_REQUEST\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown query parameter",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees?sort=name",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "name"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"BAD_REQUEST\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid employee UUID",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/not-a-uuid/salary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "not-a-uuid",
+                "salary"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salaryMinorUnits\": 5500000,\n  \"currencyCode\": \"INR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"BAD_REQUEST\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Salary update requires currency",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}/salary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeId}}",
+                "salary"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salaryMinorUnits\": 5500000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"BAD_REQUEST\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Missing employee history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{missingEmployeeId}}/salary-history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{missingEmployeeId}}",
+                "salary-history"
+              ]
+            },
+            "description": "Uses a random UUID generated before this request; assumes it does not exist."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"missingEmployeeId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 404\", () => pm.response.to.have.status(404));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"NOT_FOUND\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid insight grouping",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pay-insights?groupBy=salary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pay-insights"
+              ],
+              "query": [
+                {
+                  "key": "groupBy",
+                  "value": "salary"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"BAD_REQUEST\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid outlier pagination",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pay-insights/outliers?pageSize=101",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pay-insights",
+                "outliers"
+              ],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "101"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"BAD_REQUEST\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Malformed JSON",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"MALFORMED_JSON\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown API route",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/does-not-exist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "does-not-exist"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 404\", () => pm.response.to.have.status(404));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Error code\", () => pm.expect(json.error.code).to.eql(\"NOT_FOUND\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
