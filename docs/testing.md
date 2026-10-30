@@ -49,6 +49,7 @@ The test suite is structured into three cleanly separated tiers:
 | **Server Unit Tests** | `npm --prefix server run test:unit` | ❌ No | ~1.5s |
 | **Client Tests** | `npm --prefix client test` | ❌ No | ~5s |
 | **Server Integration Tests** | `npm --prefix server run test:integration` | ✅ Yes (test DB) | ~12s |
+| **Server E2E Tests** | `npm --prefix server run test:e2e` | ✅ Yes (running app) | ~15s |
 | **Benchmark Script** | `node server/scripts/benchmark.js` | ✅ Yes (seeded DB) | ~7s |
 
 ---

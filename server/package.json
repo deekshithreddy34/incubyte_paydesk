@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "vitest run --fileParallelism=false",
+    "test": "vitest run test/unit test/integration --fileParallelism=false",
     "test:unit": "vitest run test/unit",
     "test:integration": "vitest run test/integration --fileParallelism=false",
+    "test:e2e": "playwright test",
     "dev": "node index.js",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.js",
@@ -27,6 +28,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "supertest": "^7.3.1",
     "vitest": "^4.1.12"
   }
