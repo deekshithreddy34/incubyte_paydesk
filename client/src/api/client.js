@@ -1,5 +1,6 @@
 export async function apiRequest(endpoint, { method = 'GET', body, signal, params } = {}) {
-  let url = endpoint;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+  let url = `${baseUrl}${endpoint}`;
 
   if (params) {
     const searchParams = new URLSearchParams();
