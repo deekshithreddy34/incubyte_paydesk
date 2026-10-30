@@ -13,7 +13,7 @@
 - [x] 09 — React foundation and employee screens
 - [x] 10 — Salary and insights screens
 - [x] 11 — Integrated tests, performance and CI (CI/CD pipeline omitted per user instruction)
-- [ ] 12 — Deployment and assessment handoff
+- [] 12 — Deployment and assessment handoff
 
 ## Blockers
 
@@ -23,3 +23,16 @@ None currently.
 
 - Plan 13 (future roadmap) is explicitly excluded from implementation.
 - Plan 14 (test traceability) is a reference document to consult throughout.
+
+
+## Follow-up work(errors or enhancements)
+
+- [x] 15 — Improve pagination with direct page navigation
+  - Problem: Reaching distant pages requires repeated Next/Previous clicks.
+  - Add a "Go to page" number input and Go button.
+  - Support submitting the page number with Enter.
+  - Accept only whole numbers between 1 and the total page count.
+  - Show a clear validation message for invalid input.
+  - Preserve active search and filters when changing pages.
+  - Keep the existing Previous/Next buttons.
+  - Verify valid jumps, invalid input, and navigation with filters.

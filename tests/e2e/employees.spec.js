@@ -19,6 +19,14 @@ test.describe('Employee Management Flows', () => {
       await nextBtn.click();
       await expect(page.getByText(/Page 2 of/)).toBeVisible();
     }
+
+    // Check direct page navigation
+    const pageInput = page.getByRole('textbox', { name: /Page number/i });
+    if (await pageInput.isVisible()) {
+      await pageInput.fill('3');
+      await page.getByRole('button', { name: /^Go$/i }).click();
+      await expect(page.getByText(/Page 3 of/)).toBeVisible();
+    }
   });
 
   test('creates a new employee with valid money input and checks directory', async ({ page }) => {
