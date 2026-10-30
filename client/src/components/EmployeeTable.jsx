@@ -29,16 +29,16 @@ export default function EmployeeTable({
 
   return (
     <div className="overflow-x-auto bg-white border border-slate-200 rounded-lg shadow-sm">
-      <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
+      <table className="w-full min-w-[760px] lg:min-w-full divide-y divide-slate-200 text-left text-xs">
         <thead className="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider">
           <tr>
-            <th scope="col" className="px-4 py-3">Code</th>
-            <th scope="col" className="px-4 py-3">Employee</th>
-            <th scope="col" className="px-4 py-3">Country</th>
-            <th scope="col" className="px-4 py-3">Department</th>
-            <th scope="col" className="px-4 py-3">Level</th>
-            <th scope="col" className="px-4 py-3 text-right">Annual Gross Salary</th>
-            <th scope="col" className="px-4 py-3 text-center">Actions</th>
+            <th scope="col" className="w-28 px-3 py-3 font-semibold">Code</th>
+            <th scope="col" className="px-3 py-3 font-semibold">Employee</th>
+            <th scope="col" className="w-20 px-3 py-3 font-semibold text-center">Country</th>
+            <th scope="col" className="w-32 px-3 py-3 font-semibold">Department</th>
+            <th scope="col" className="w-20 px-3 py-3 font-semibold text-center">Level</th>
+            <th scope="col" className="w-40 px-3 py-3 font-semibold text-right">Annual Gross Salary</th>
+            <th scope="col" className="w-36 px-3 py-3 font-semibold text-center">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 text-slate-800">
@@ -48,20 +48,20 @@ export default function EmployeeTable({
 
             return (
               <tr key={emp.id} className="hover:bg-slate-50/80 transition-colors">
-                <td className="px-4 py-3 font-mono font-medium text-slate-900 whitespace-nowrap">
+                <td className="w-28 px-3 py-2.5 font-mono font-medium text-slate-900 break-all">
                   {emp.employeeCode}
                 </td>
-                <td className="px-4 py-3">
-                  <div className="font-semibold text-slate-900">{emp.name}</div>
-                  <div className="text-slate-500 text-[11px]">{emp.email}</div>
+                <td className="px-3 py-2.5 min-w-0">
+                  <div className="font-semibold text-slate-900 break-words">{emp.name}</div>
+                  <div className="text-slate-500 text-[11px] break-all">{emp.email}</div>
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap">
+                <td className="w-20 px-3 py-2.5 text-center">
                   <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-800">
                     {emp.countryCode}
                   </span>
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap">{emp.department}</td>
-                <td className="px-4 py-3 whitespace-nowrap">
+                <td className="w-32 px-3 py-2.5 break-words">{emp.department}</td>
+                <td className="w-20 px-3 py-2.5 text-center">
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${
                       emp.level === 'Lead'
@@ -76,17 +76,17 @@ export default function EmployeeTable({
                     {emp.level}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right font-mono font-semibold text-slate-900 whitespace-nowrap">
+                <td className="w-40 px-3 py-2.5 text-right font-mono font-semibold text-slate-900 whitespace-nowrap">
                   {formatted}
                 </td>
-                <td className="px-4 py-3 text-center whitespace-nowrap">
-                  <div className="inline-flex items-center gap-1.5">
+                <td className="w-36 px-3 py-2.5 text-center">
+                  <div className="inline-flex items-center justify-center gap-1.5">
                     <button
                       onClick={() => onChangeSalary?.(emp)}
                       className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200 transition-colors cursor-pointer"
                       title="Change annual salary"
                     >
-                      <DollarSign className="w-3.5 h-3.5" />
+                      <DollarSign className="w-3.5 h-3.5 shrink-0" />
                       Change
                     </button>
                     <button
@@ -94,7 +94,7 @@ export default function EmployeeTable({
                       className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 transition-colors cursor-pointer"
                       title="View salary change history"
                     >
-                      <History className="w-3.5 h-3.5" />
+                      <History className="w-3.5 h-3.5 shrink-0" />
                       History
                     </button>
                   </div>
@@ -107,4 +107,3 @@ export default function EmployeeTable({
     </div>
   );
 }
-

@@ -25,7 +25,7 @@ None currently.
 - Plan 14 (test traceability) is a reference document to consult throughout.
 
 
-## Follow-up work(errors or enhancements)
+## Follow-up work(handle errors or enhancements)
 
 - [x] 15 — Improve pagination with direct page navigation
   - Problem: Reaching distant pages requires repeated Next/Previous clicks.
@@ -36,3 +36,13 @@ None currently.
   - Preserve active search and filters when changing pages.
   - Keep the existing Previous/Next buttons.
   - Verify valid jumps, invalid input, and navigation with filters.
+
+  - [x] 16 — Fix unnecessary horizontal scrolling in the employee table
+  - Problem: The table overflows its container on desktop,
+    requiring horizontal scrolling to see all columns and actions.
+  - Adjust column widths, spacing, and text wrapping so the
+    table fits the available desktop width.
+  - Keep employee details and action buttons accessible.
+  - Preserve horizontal scrolling on smaller screens when needed.
+  - Do not simply hide the scrollbar or clip overflowing content.
+  - Verify the layout with long employee codes, names, and emails.

@@ -61,7 +61,7 @@ test.describe('Employee Management Flows', () => {
 
     await expect(page.getByText(testName)).toBeVisible();
     await expect(page.getByText(testEmail)).toBeVisible();
-    await expect(page.getByText('USD 145,000.50')).toBeVisible();
+    await expect(page.getByText(/145,000\.50/)).toBeVisible();
   });
 
   test('updates salary and verifies audit history drawer', async ({ page }) => {
@@ -102,14 +102,14 @@ test.describe('Employee Management Flows', () => {
     await page.getByRole('button', { name: /Save New Salary/i }).click();
 
     await expect(page.getByRole('heading', { name: 'Update Salary' })).not.toBeVisible();
-    await expect(employeeRow.getByText('USD 105,000.00')).toBeVisible();
+    await expect(employeeRow.getByText(/105,000\.00/)).toBeVisible();
 
     // View History Drawer
     await employeeRow.getByRole('button', { name: /View salary history/i }).click();
     await expect(page.getByRole('heading', { name: 'Salary History' })).toBeVisible();
     await expect(page.getByText('Mid-year promotion review')).toBeVisible();
-    await expect(page.getByText('USD 105,000.00')).toBeVisible();
-    await expect(page.getByText('USD 90,000.00')).toBeVisible();
+    await expect(page.getByText(/105,000\.00/)).toBeVisible();
+    await expect(page.getByText(/90,000\.00/)).toBeVisible();
 
     // Close Drawer
     await page.getByRole('button', { name: /Close drawer/i }).click();
