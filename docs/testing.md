@@ -58,6 +58,6 @@ The test suite is structured into three cleanly separated tiers:
 
 1. **Exact Integer Minor Units**: All monetary values are asserted as exact safe integers in database and schema tests; floating-point representation is forbidden.
 2. **Transaction Rollback**: Failures during employee creation or salary updates are tested to ensure zero partial writes.
-3. **Audit Trail Completeness**: Every salary change is tested to assert an immutable `SalaryHistory` entry with timestamp, old salary, new salary, and reason.
+3. **Audit Trail Completeness**: Every salary change is tested to assert an append-only `SalaryHistory` entry with the new salary, currency, and timestamp. Unchanged amounts produce no duplicate entry..
 4. **Outlier Precision**: Quartiles computed via linear interpolation ($pos = 1 + (n-1) \times p$) are tested against known statistical test cases.
 
