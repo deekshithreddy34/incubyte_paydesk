@@ -46,3 +46,31 @@ See [requirements](docs/requirements.md) for the complete scope and exclusions, 
 ## Video Demo
 
 - **[software demo video](https://drive.google.com/file/d/1Z0z2ojgfD3tH14XaTqmlEGKLvoPOkaaM/view?usp=sharing)**
+
+## Run locally
+
+Requires Node.js 20+ and Docker (or any PostgreSQL with `pg_trgm`).
+
+```bash
+# 1. Database
+docker run -d --name paydesk-db -p 5432:5432 \
+  -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=acme_salary_dev \
+  postgres:18-alpine
+docker exec paydesk-db createdb -U postgres acme_salary_test
+
+# 2. Server (http://localhost:3000)
+cd server
+echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/acme_salary_dev
+TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/acme_salary_test
+FRONTEND_URL=http://localhost:5173" > .env
+npm install
+npx prisma generate
+npx prisma migrate deploy
+npm run db:seed        # 10,000 employees
+npm run dev
+
+# 3. Client (http://localhost:5173), in a new terminal
+cd client
+npm install
+npm run dev
+```
