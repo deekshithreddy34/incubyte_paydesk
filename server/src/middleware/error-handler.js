@@ -17,6 +17,24 @@ export function errorHandler(err, req, res, next) {
     return res.status(err.statusCode).json(response);
   }
 
+    if (err instanceof AppError) {
+    ...
+    return res.status(err.statusCode).json(response);
+  }
+
+  // Request body larger than the express.json limit
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({
+      error: {
+        code: 'PAYLOAD_TOO_LARGE',
+        message: 'Request body is too large',
+      },
+    });
+  }
+
+  // Always log unexpected internal errors
+  console.error('Unhandled internal error:', err);
+
   // Always log unexpected internal errors
   console.error('Unhandled internal error:', err);
 
